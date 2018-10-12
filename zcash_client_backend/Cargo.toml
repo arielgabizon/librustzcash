@@ -8,6 +8,7 @@ authors = [
 [dependencies]
 byteorder = "1"
 pairing = { path = "../pairing" }
+protobuf = "2"
 rand = "0.4"
 sapling-crypto = { path = "../sapling-crypto" }
 zcash_primitives = { path = "../zcash_primitives" }
