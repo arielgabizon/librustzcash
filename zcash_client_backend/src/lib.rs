@@ -10,6 +10,7 @@ extern crate zcash_primitives;
 extern crate zip32;
 
 pub mod data;
+pub mod keystore;
 mod note_encryption;
 pub mod wallet;
 pub mod welding_rig;
