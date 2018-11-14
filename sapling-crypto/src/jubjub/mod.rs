@@ -50,6 +50,7 @@ pub mod tests;
 pub enum Unknown { }
 
 /// Point of prime order.
+#[derive(Debug)]
 pub enum PrimeOrder { }
 
 /// Fixed generators of the Jubjub curve of unknown
