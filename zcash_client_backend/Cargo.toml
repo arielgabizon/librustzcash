@@ -36,5 +36,9 @@ jsonrpc = ["exonum_jsonrpc", "hex-serde", "serde", "serde_derive", "serde_json"]
 rpcsync = ["jsonrpc", "pirate"]
 
 [[example]]
+name = "balancer"
+required-features = ["rpcsync"]
+
+[[example]]
 name = "rpcsync"
 required-features = ["rpcsync"]
