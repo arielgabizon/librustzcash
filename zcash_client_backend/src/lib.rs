@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate failure;
+
 extern crate bech32;
 extern crate blake2_rfc;
 extern crate byteorder;
@@ -10,6 +13,23 @@ extern crate sapling_crypto;
 extern crate zcash_primitives;
 extern crate zip32;
 
+#[cfg(feature = "jsonrpc")]
+extern crate exonum_jsonrpc;
+
+#[cfg(feature = "jsonrpc")]
+extern crate hex_serde;
+
+#[cfg(feature = "jsonrpc")]
+extern crate serde;
+
+#[cfg(feature = "jsonrpc")]
+#[macro_use]
+extern crate serde_derive;
+
+#[cfg(feature = "jsonrpc")]
+#[macro_use]
+extern crate serde_json;
+
 pub mod address;
 pub mod constants;
 pub mod data;
@@ -17,3 +37,9 @@ pub mod keystore;
 mod note_encryption;
 pub mod wallet;
 pub mod welding_rig;
+
+#[cfg(feature = "jsonrpc")]
+mod jsonrpc;
+
+#[cfg(feature = "jsonrpc")]
+pub use jsonrpc::RpcChainSync;

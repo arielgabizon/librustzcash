@@ -8,11 +8,18 @@ authors = [
 [dependencies]
 bech32 = "0.5"
 byteorder = "1"
+exonum_jsonrpc = { version = "0.4.0", optional = true }
+failure = "0.1"
 hex = "0.3"
+hex-serde = { version = "0.1", optional = true }
 pairing = { path = "../pairing" }
+pirate = { version = "1.0", optional = true }
 protobuf = "2"
 rand = "0.4"
 sapling-crypto = { path = "../sapling-crypto" }
+serde = { version = "1.0", optional = true }
+serde_derive = { version = "1.0", optional = true }
+serde_json = { version = "1.0", optional = true }
 zcash_primitives = { path = "../zcash_primitives" }
 zip32 = { path = "../zip32" }
 
@@ -23,3 +30,11 @@ rev = "7a5b5fc99ae483a0043db7547fb79a6fa44b88a9"
 [dependencies.chacha20-poly1305-aead]
 git = "https://github.com/gtank/chacha20-poly1305-aead"
 rev = "aefc71f95e8bc43f2070e3c5b08130d9c86bbf4f"
+
+[features]
+jsonrpc = ["exonum_jsonrpc", "hex-serde", "serde", "serde_derive", "serde_json"]
+rpcsync = ["jsonrpc", "pirate"]
+
+[[example]]
+name = "rpcsync"
+required-features = ["rpcsync"]
