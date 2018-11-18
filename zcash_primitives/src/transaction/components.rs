@@ -23,6 +23,7 @@ const ZC_NUM_JS_OUTPUTS: usize = 2;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Amount(pub i64);
 
+#[derive(Debug)]
 pub struct Script(pub Vec<u8>);
 
 impl Script {
@@ -36,6 +37,7 @@ impl Script {
     }
 }
 
+#[derive(Debug)]
 pub struct OutPoint {
     hash: [u8; 32],
     n: u32,
@@ -55,6 +57,7 @@ impl OutPoint {
     }
 }
 
+#[derive(Debug)]
 pub struct TxIn {
     pub prevout: OutPoint,
     script_sig: Script,
@@ -81,6 +84,7 @@ impl TxIn {
     }
 }
 
+#[derive(Debug)]
 pub struct TxOut {
     value: Amount,
     script_pubkey: Script,
@@ -110,6 +114,16 @@ pub struct SpendDescription {
     pub rk: PublicKey<Bls12>,
     pub zkproof: [u8; GROTH_PROOF_SIZE],
     pub spend_auth_sig: Signature,
+}
+
+impl std::fmt::Debug for SpendDescription {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "SpendDescription(cv = {:?}, anchor = {:?}, nullifier = {:?}, rk = {:?}, spend_auth_sig = {:?})",
+            self.cv, self.anchor, self.nullifier, self.rk, self.spend_auth_sig
+        )
+    }
 }
 
 impl SpendDescription {
@@ -159,6 +173,16 @@ pub struct OutputDescription {
     pub zkproof: [u8; GROTH_PROOF_SIZE],
 }
 
+impl std::fmt::Debug for OutputDescription {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "OutputDescription(cv = {:?}, cmu = {:?}, ephemeral_key = {:?})",
+            self.cv, self.cmu, self.ephemeral_key
+        )
+    }
+}
+
 impl OutputDescription {
     pub fn read<R: Read>(mut reader: &mut R) -> io::Result<Self> {
         let cv = edwards::Point::<Bls12, Unknown>::read(&mut reader, &JUBJUB)?;
@@ -202,6 +226,15 @@ enum SproutProof {
     PHGR([u8; PHGR_PROOF_SIZE]),
 }
 
+impl std::fmt::Debug for SproutProof {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        match self {
+            SproutProof::Groth(_) => write!(f, "SproutProof::Groth"),
+            SproutProof::PHGR(_) => write!(f, "SproutProof::PHGR"),
+        }
+    }
+}
+
 pub struct JSDescription {
     vpub_old: Amount,
     vpub_new: Amount,
@@ -213,6 +246,30 @@ pub struct JSDescription {
     macs: [[u8; 32]; ZC_NUM_JS_INPUTS],
     proof: SproutProof,
     ciphertexts: [[u8; 601]; ZC_NUM_JS_OUTPUTS],
+}
+
+impl std::fmt::Debug for JSDescription {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "JSDescription(
+                vpub_old = {:?}, vpub_new = {:?},
+                anchor = {:?},
+                nullifiers = {:?},
+                commitments = {:?},
+                ephemeral_key = {:?},
+                random_seed = {:?},
+                macs = {:?})",
+            self.vpub_old,
+            self.vpub_new,
+            self.anchor,
+            self.nullifiers,
+            self.commitments,
+            self.ephemeral_key,
+            self.random_seed,
+            self.macs
+        )
+    }
 }
 
 impl JSDescription {

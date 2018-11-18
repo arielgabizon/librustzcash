@@ -34,6 +34,7 @@ impl fmt::Display for TxId {
 }
 
 /// A Zcash transaction.
+#[derive(Debug)]
 pub struct Transaction(TransactionData);
 
 impl Deref for Transaction {
@@ -59,6 +60,41 @@ pub struct TransactionData {
     pub joinsplit_pubkey: [u8; 32],
     pub joinsplit_sig: [u8; 64],
     pub binding_sig: Option<Signature>,
+}
+
+impl std::fmt::Debug for TransactionData {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "TransactionData(
+                overwintered = {:?},
+                version = {:?},
+                version_group_id = {:?},
+                vin = {:?},
+                vout = {:?},
+                lock_time = {:?},
+                expiry_height = {:?},
+                value_balance = {:?},
+                shielded_spends = {:?},
+                shielded_outputs = {:?},
+                joinsplits = {:?},
+                joinsplit_pubkey = {:?},
+                binding_sig = {:?})",
+            self.overwintered,
+            self.version,
+            self.version_group_id,
+            self.vin,
+            self.vout,
+            self.lock_time,
+            self.expiry_height,
+            self.value_balance,
+            self.shielded_spends,
+            self.shielded_outputs,
+            self.joinsplits,
+            self.joinsplit_pubkey,
+            self.binding_sig
+        )
+    }
 }
 
 impl TransactionData {
