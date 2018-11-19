@@ -1,4 +1,5 @@
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use std;
 use pairing::{
     bls12_381::{Bls12, Fr, FrRepr},
     PrimeField, PrimeFieldRepr,

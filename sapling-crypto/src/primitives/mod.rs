@@ -5,6 +5,7 @@ use pairing::{
 };
 
 use constants;
+use util::hash_to_scalar;
 
 use group_hash::group_hash;
 
@@ -118,7 +119,25 @@ impl<E: JubjubEngine> ViewingKey<E> {
             }
         })
     }
-}
+
+    pub fn make_multisig_with(
+        &self,
+        ak_2: edwards::Point<E, PrimeOrder>,
+        params: &E::Params
+    ) -> ViewingKey<E>
+    {   //TODO: randomize the resultant key with hash to avoid known attacks
+        ViewingKey{ak: self.ak.add(&ak_2, params),nk: self.nk.clone()}
+    }
+
+    pub fn make_multisig_address_with(
+        &self,
+        ak_2: edwards::Point<E, PrimeOrder>,
+        params: &E::Params
+    ) -> PaymentAddress<E>
+    {   //TODO: randomize the resultant key with hash to avoid known attacks
+        ViewingKey{ak: self.ak.add(&ak_2, params),nk: self.nk.clone()}.into_payment_address(Diversifier([0u8;11]),params).unwrap()
+    }
+  }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Diversifier(pub [u8; 11]);
@@ -271,4 +290,94 @@ impl<E: JubjubEngine> Note<E> {
         // commitment to the x-coordinate is an injective encoding.
         self.cm_full_point(params).into_xy().0
     }
+}
+
+
+
+/// First participant in a multisig
+pub struct musig_comp1<E: JubjubEngine>{
+    ask1_orig: E::Fs,
+    ask1: E::Fs,
+    ak1_orig: edwards::Point<E,PrimeOrder>,
+    ak1: edwards::Point<E,PrimeOrder>,
+    ak2: edwards::Point<E,PrimeOrder>,
+    rand_factor1: E::Fs,
+    rand_factor2: E::Fs,
+    ak: edwards::Point<E,PrimeOrder>,
+    rk: edwards::Point<E,PrimeOrder>,
+    ar: E::Fs,
+    r1: E::Fs,
+    R1: edwards::Point<E,PrimeOrder>,
+    R: edwards::Point<E,PrimeOrder>
+}
+
+
+/// First participant in a multisig
+pub struct musig_comp2<E: JubjubEngine>{
+    ask2_orig: E::Fs,
+    ask2: E::Fs,
+    ak2_orig: edwards::Point<E,PrimeOrder>,
+    ak2: edwards::Point<E,PrimeOrder>,
+    ak: edwards::Point<E,PrimeOrder>,
+    rk: edwards::Point<E,PrimeOrder>,
+    rand_factor1: E::Fs,
+    rand_factor2: E::Fs,
+    ar: E::Fs,
+    r2: E::Fs,
+    R2: edwards::Point<E,PrimeOrder>,
+    R: edwards::Point<E,PrimeOrder>
+}
+
+impl<E: JubjubEngine> musig_comp1<E>{
+    //make the correct joint ak address as in the musig paper
+    pub fn init(&mut self, my_ask: E::Fs, ak2_orig: edwards::Point<E,PrimeOrder>,  params: &E::Params){
+        self.ask1_orig = my_ask.clone();
+        //compute original public key from original private key
+        self.ak1_orig =params.generator(FixedGenerators::SpendingKeyGenerator).clone();//
+        let c = self.ask1_orig;
+        self.ak1_orig = self.ak1_orig.mul(self.ask1_orig, params);
+
+        let mut t=[0u8;64 ];
+        let mut s = [0u8;32];
+        self.ak1_orig.write(&mut t[0..32]);
+        ak2_orig.write(&mut t[33..64]);
+        self.ak1_orig.write(&mut s[0..32]);
+        self.rand_factor1 = hash_to_scalar::<E>(b"MULTI_SIG_ADDR",&t,&s);
+        self.ask1 =  my_ask.clone();
+        self.ask1.mul_assign(&self.rand_factor1);
+        self.ak1 = self.ak1_orig.mul(self.rand_factor1,params);
+        ak2_orig.write(&mut s[0..32]);
+        self.rand_factor2 = hash_to_scalar::<E>(b"MULTI_SIG_ADDR",&t,&s);
+        let ak2 = ak2_orig.mul(self.rand_factor2,params);
+        self.ak = self.ak1.add(&ak2,params);
+    }
+}
+//
+impl<E: JubjubEngine> musig_comp2<E>{
+    //make the correct joint ak address as in the musig paper
+    pub fn init(&mut self, my_ask: E::Fs, ak1_orig: edwards::Point<E,PrimeOrder>,  params: &E::Params){
+        self.ask2_orig = my_ask.clone();
+        //compute original public key from original private key
+        self.ak2_orig =params.generator(FixedGenerators::SpendingKeyGenerator).clone();//
+        self.ak2_orig = self.ak2_orig.mul(self.ask2_orig, params);
+
+        let mut t=[0u8;64 ];
+        let mut s = [0u8;32];
+        ak1_orig.write(&mut t[0..32]);
+        self.ak2_orig.write(&mut t[33..64]);
+        ak1_orig.write(&mut s[0..32]);
+        self.rand_factor1 = hash_to_scalar::<E>(b"MULTI_SIG_ADDR",&t,&s);
+        let ak1 = ak1_orig.mul(self.rand_factor1,params);
+        self.ak2_orig.write(&mut s[0..32]);
+        self.rand_factor2 = hash_to_scalar::<E>(b"MULTI_SIG_ADDR",&t,&s);
+        self.ask2 =  my_ask.clone();
+        self.ask2.mul_assign(&self.rand_factor2);
+        self.ak2 = self.ak2_orig.mul(self.rand_factor2,params);
+        self.ak = ak1.add(&self.ak2,params);
+    }
+}
+
+#[test]
+fn musig_addr_match(){
+
 }
