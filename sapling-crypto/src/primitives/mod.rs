@@ -118,7 +118,25 @@ impl<E: JubjubEngine> ViewingKey<E> {
             }
         })
     }
-}
+
+    pub fn make_multisig_with(
+        &self,
+        ak_2: edwards::Point<E, PrimeOrder>,
+        params: &E::Params
+    ) -> ViewingKey<E>
+    {   //TODO: randomize the resultant key with hash to avoid known attacks
+        ViewingKey{ak: self.ak.add(&ak_2, params),nk: self.nk.clone()}
+    }
+
+    pub fn make_multisig_address_with(
+        &self,
+        ak_2: edwards::Point<E, PrimeOrder>,
+        params: &E::Params
+    ) -> PaymentAddress<E>
+    {   //TODO: randomize the resultant key with hash to avoid known attacks
+        ViewingKey{ak: self.ak.add(&ak_2, params),nk: self.nk.clone()}.into_payment_address(Diversifier([0u8;11]),params).unwrap()
+    }
+  }
 
 #[derive(Copy, Clone)]
 pub struct Diversifier(pub [u8; 11]);
