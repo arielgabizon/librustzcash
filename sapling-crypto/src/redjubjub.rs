@@ -78,6 +78,17 @@ impl<E: JubjubEngine> PrivateKey<E> {
         write_scalar::<E, W>(&self.0, writer)
     }
 
+    pub fn agg_sign(r1,ask1,msg,R,ak)(
+        &self,
+        msg: &[u8],
+        r_part: E::Fs,
+        R: Point<E, PrimeOrder>,
+
+    ) -> Signature {
+
+    }
+
+
     pub fn sign<R: Rng>(
         &self,
         msg: &[u8],

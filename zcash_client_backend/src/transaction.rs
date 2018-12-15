@@ -313,7 +313,7 @@ impl Builder {
     }
 
 
-
+//
 //pub fn aggregate_spend_signatures(
 //    mut self,
 //    consensus_branch_id: u32,
@@ -336,9 +336,10 @@ impl Builder {
 //
 //    // Aggregate a signature by ask to each spend
 //    for (i, (xsk, spend)) in spends.into_iter().enumerate() {
-//    self.mtx.shielded_spends[i].spend_auth_sig[1].
-//    spend_sig(PrivateKey(xsk.expsk.ask), spend.ar, & sighash, &JUBJUB);
+//    self.mtx.shielded_spends[i].spend_auth_sig
+//    spend_sig(ask, spend.ar, & sighash, &JUBJUB);
 //    }
+//    Ok(self.mtx.freeze())
 //}
     // build tx but don't add the spend authorization signatures - might be good for multisig
     pub fn build_no_sign(

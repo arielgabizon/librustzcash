@@ -6,7 +6,9 @@ use pairing::{
 
 use constants;
 use util::hash_to_scalar;
-
+use rand::thread_rng;
+use rand::{Rng, Rand};
+use redjubjub::Signature;
 use group_hash::group_hash;
 
 use pedersen_hash::{
@@ -326,6 +328,8 @@ pub struct musig_comp2<E: JubjubEngine>{
     r2: E::Fs,
     R2: edwards::Point<E,PrimeOrder>,
     R: edwards::Point<E,PrimeOrder>
+
+
 }
 
 impl<E: JubjubEngine> musig_comp1<E>{
@@ -351,7 +355,29 @@ impl<E: JubjubEngine> musig_comp1<E>{
         let ak2 = ak2_orig.mul(self.rand_factor2,params);
         self.ak = self.ak1.add(&ak2,params);
     }
-}
+
+    // create the joint R part of the signature for the current signature
+    pub fn init_sig(&mut self, R2: edwards::Point<E,PrimeOrder>,  params: &E::Params){
+        let rng = &mut thread_rng();
+        let mut t = [0u8; 80];
+        let mut s = [0u8;20];
+        rng.fill_bytes(&mut t[..]);
+        rng.fill_bytes(&mut s[..]);
+
+        // r = H*(T || M)
+        self.r1 = hash_to_scalar::<E>(b"MULTI_SIG_CHAL",&t[..],&s[..]);
+        self.R1 = params.generator(FixedGenerators::SpendingKeyGenerator).clone();
+        self.R1 = self.R1.mul(self.r1, params);
+        self.R = self.R1.add(&R2, params);
+    }
+
+    //aggregate first player's part of the signature
+    pub fn sign(msg: &[u8]) -> Signature{
+        ask1.agg_sign(r1,msg,R,ak)
+    }
+
+
+ }
 //
 impl<E: JubjubEngine> musig_comp2<E>{
     //make the correct joint ak address as in the musig paper
@@ -375,6 +401,21 @@ impl<E: JubjubEngine> musig_comp2<E>{
         self.ak2 = self.ak2_orig.mul(self.rand_factor2,params);
         self.ak = ak1.add(&self.ak2,params);
     }
+
+    pub fn init_sig(&mut self, params: &E::Params)-> edwards::Point<E,PrimeOrder>  {
+        let rng = &mut thread_rng();
+        let mut t = [0u8; 80];
+        let mut s = [0u8;20];
+        rng.fill_bytes(&mut t[..]);
+        rng.fill_bytes(&mut s[..]);
+
+        // r = H*(T || M)
+        self.r2 = hash_to_scalar::<E>(b"MULTI_SIG_CHAL",&t[..],&s[..]);
+        self.R2 = params.generator(FixedGenerators::SpendingKeyGenerator).clone();
+        self.R2 = self.R2.mul(self.r2, params);
+        self.R2.clone()
+    }
+
 }
 
 #[test]

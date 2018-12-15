@@ -73,6 +73,33 @@ pub fn spend_sig(
 }
 
 /// Create the spendAuthSig for a Sapling SpendDescription with a given public key.
+//pub fn add_sig(
+//    ask: PrivateKey<Bls12>,
+//    cur_sig: &mut Signature,
+//    sighash: &[u8; 32],
+//    pk: PublicKey<Bls12>,
+//    params: &JubjubBls12,
+//)  {
+//    // Initialize secure RNG
+//    let mut rng = OsRng::new().expect("should be able to construct RNG");
+//
+//    // Compute the signature's message for rk/spend_auth_sig
+//    let mut data_to_be_signed = [0u8; 64];
+//    pk.0.write(&mut data_to_be_signed[0..32])
+//        .expect("message buffer should be 32 bytes");
+//    (&mut data_to_be_signed[32..64]).copy_from_slice(&sighash[..]);
+//
+//    // Do the signing
+//    let a = ask.sign(
+//        &data_to_be_signed,
+//        &mut rng,
+//        FixedGenerators::SpendingKeyGenerator,
+//        params,
+//    )
+//}
+
+
+/// Create the spendAuthSig for a Sapling SpendDescription with a given public key.
 pub fn spend_sig_with_pk(
     ask: PrivateKey<Bls12>,
     ar: Fs,
